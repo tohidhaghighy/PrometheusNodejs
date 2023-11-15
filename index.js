@@ -5,31 +5,18 @@ const app = express();
 
 let collectDefaultMetrics = client.collectDefaultMetrics;
 const register = new client.Registry();
-//let register = new client.Registry();
 
-
-// Create custom metrics
-const customCounter = new client.Counter({
-    name: "my_custom_counter",
-    help: "Custom counter for my application",
-});
-
-// Create custom metrics
-const userCounter = new client.Counter({
-    name: "my_user_counter",
-    help: "User counter for my application",
-});
-
-// Create custom metrics
-const fileCounter = new client.Counter({
-    name: "my_file_counter",
-    help: "File counter for my application",
-});
-
+const gauge = new client.Counter({
+    name: 'metric_name',
+    help: 'metric_help',
+    // add `as const` here to enforce label names
+    labelNames: ['Desktop','Next','Farabixo','Helium','SRE','MDP'],
+  });
+  register.registerMetric(gauge);
+  // Ok
+  gauge.inc({ method: 1 });
 // Add your custom metric to the registry
-register.registerMetric(customCounter);
-register.registerMetric(userCounter);
-register.registerMetric(fileCounter);
+
 
 client.collectDefaultMetrics({
     app: 'node-application-monitoring-app',
@@ -38,11 +25,26 @@ client.collectDefaultMetrics({
     gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5],
     register
 });
+
 // Create a route to expose /
 app.get('/', (req, res) => {
-    customCounter.inc();
-	userCounter.inc();
-	fileCounter.inc();
+    try{
+        gauge.inc({ 'Desktop': 1,'SRE':1 });
+    }catch{
+
+    }
+	console.log(register.metrics());
+	res.send("test");
+});
+
+app.get('/SRE', (req, res) => {
+    gauge.inc({ SRE: 1 });
+	console.log(register.metrics());
+	res.send("test");
+});
+
+app.get('/Desktop', (req, res) => {
+    gauge.inc({ MDP: 1 });
 	console.log(register.metrics());
 	res.send("test");
 });
